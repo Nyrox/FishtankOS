@@ -1,0 +1,15 @@
+[package]
+name = "fishtank_os"
+version = "0.1.0"
+authors = ["Nyrox <mark.oliver@ħotmail.de>"]
+
+
+[lib]
+crate-type = ["staticlib"]
+
+[profile.release]
+panic = "abort"
+
+[dependencies]
+
+
