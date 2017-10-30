@@ -30,7 +30,8 @@ start:
 	; Move page table address to cr3
 	mov eax, p4_table
 	mov cr3, eax
-	
+
+.enable_pae:	
 	; Enable PAE
 	mov eax, cr4
 	or eax, 1 << 5
@@ -42,21 +43,25 @@ start:
 	or eax, 1 << 8
 	wrmsr
 
+.enable_paging:
 	; enable paging
 	mov eax, cr0
 	or eax, 1 << 31
 	or eax, 1 << 16
 	mov cr0, eax
 
+.init_gdt:
 	; Setup gdt
 	lgdt [gdt64.pointer]
 
+.init_long_mode:
 	; Enable proper long mode
 	mov ax, gdt64.data
 	mov ss, ax
 	mov ds, ax
 	mov es, ax
 
+.init_kernel:
 	jmp gdt64.code:kmain
 	; See you on the other side, jimmy!
 

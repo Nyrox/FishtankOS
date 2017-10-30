@@ -30,5 +30,5 @@ cargo:
 .PHONY: clean
 
 clean:
-	rm -rf target
+	cargo clean
 
