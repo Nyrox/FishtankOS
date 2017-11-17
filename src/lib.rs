@@ -1,11 +1,16 @@
 #![no_std]
 #![feature(lang_items)]
-// #![feature(asm)]
-
+#![feature(asm)]
+#![feature(intrinsics)]
+#![feature(naked_functions)]
 #![deny(unused_must_use)]
 
 #[macro_use]
 mod vga;
+
+extern "rust-intrinsic" {
+	pub fn transmute<T, U>(e: T) -> U;
+}
 
 #[lang = "eh_personality"]
 extern fn eh_personality() {
@@ -26,6 +31,17 @@ fn inb(port: u8) -> u8 {
     ret
 }
 
+#[repr(C)]
+struct IDT {
+	descriptors: [u64; 256]
+}	
+
+#[no_mangle]
+#[naked]
+unsafe fn int_keyboard() {
+	vga::set_cell_checked(8, 0, vga::Character::new(0x4F, VGAColor!(Red on Black))).ok();
+}
+
 #[no_mangle]
 pub extern fn kmain() -> ! {
     vga::clear_cells(VGAColor!(Black));
@@ -37,17 +53,10 @@ pub extern fn kmain() -> ! {
     vga::set_cell_checked(3, 0, vga::Character::new(0x59, VGAColor!(Red on Black))).ok();
 
 
-   
-    let mut  c: u8 = 0;
-    'scan: loop {
-        if inb(0x60) != c {
-            c = inb(0x60);
-            if c > 0 { break 'scan; }
-        }
-    }
-
-    vga::set_cell_checked(4, 0, vga::Character::new(c, VGAColor!(Red on Blue))).ok();
-    vga::set_cell_checked(0, 0, vga::Character::new(0x42, VGAColor!(Red on Green))).ok();  
+	let mut idt = IDT { descriptors: [0; 256] };
+	idt.descriptors[30] = unsafe { transmute(&int_keyboard) };
+    
+	  
 
 	loop {}
 }
